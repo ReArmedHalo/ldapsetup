@@ -331,11 +331,11 @@ fi
 
 # Find out if user wants Virtualmin GPL/Pro or Webmin
 printf "$cf_cyan%s\n" "Would you like me to install Virtualmin or Webmin for you?"
-printf "\t$cf_blue%s) $cf_lblue%s\t\t%s\n" "Webmin" "(Recommended for server)"
-printf "\t$cf_blue%s) $cf_lblue%s\t\t%s\n" "Virtualmin GPL" "(Recommended for client)"
-printf "\t$cf_blue%s) $cf_lblue%s\t\t%s\n" "Virtualmin Pro" "(Recommended for client)"
+printf "\t$cf_blue%s) $cf_lblue%s\t\t%s\n" "1" "Webmin" "(Recommended for server)"
+printf "\t$cf_blue%s) $cf_lblue%s\t%s\n" "2" "Virtualmin GPL" "(Recommended for client)"
+printf "\t$cf_blue%s) $cf_lblue%s\t%s\n" "3" "Virtualmin Pro" "(Recommended for client)"
 echo
-printf "$cf_cyan%s$cf_lmagenta" "Selection [1-3]:"
+printf "$cf_cyan%s$cf_lmagenta" "Selection [1-3]: "
 while read line; do
 	case $line in
 		1)
