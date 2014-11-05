@@ -1,29 +1,48 @@
 #!/bin/bash
 ########################################################################
-#                                                                      #
-# This script will install and execute all steps required to setup an  #
-# OpenLDAP server for use with Virtualmin.                             #
-#                                                                      #
-# Created by: Dustin Schreiber (http://www.dustinschreiber.me)         #
-# Created: November, 5th 2014 at 11:27 AM EST                          #
-# Last Updated: Never                                                  #
-#                                                                      #
-# Copyright (C) 2014 Dustin Schreiber                                  #
-#                                                                      #
-# This program is free software: you can redistribute it and/or modify #
-# it under the terms of the GNU General Public License as published by #
-# the Free Software Foundation, either version 3 of the License, or    #
-# (at your option) any later version.                                  #
-#                                                                      #
-# This program is distributed in the hope that it will be useful,      #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of       #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        #
-# GNU General Public License for more details.                         #
-#                                                                      #
-# You should have received a copy of the GNU General Public License    #
-# along with this program.  If not, see <http://www.gnu.org/licensess>.#
-#                                                                      #
+#
+# This script will install and execute all steps required to setup an
+# OpenLDAP server for use with Virtualmin.
+#
+# Created by: Dustin Schreiber (http://www.dustinschreiber.me)
+# Contributors: Logan Merrill (http://www.airshock.net)
+# Created: November, 5th 2014 at 11:27 AM EST
+#
+# Copyright (C) 2014 Dustin Schreiber
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licensess>.
+#
 ########################################################################
+
+# Colour and formatting
+cf_resetall=$'\e[0m\e[39m'
+cf_resetf=$'\e[0m'
+cf_resetc=$'\e[39m'
+cf_bold=$'\e[1m'
+cf_under=$'\e[4m'
+cf_green=$'\e[32m'
+cf_lgreen=$'\e[92m'
+cf_blue=$'\e[34m'
+cf_lblue=$'\e[96m'
+cf_red=$'\e[31m'
+cf_lred=$'\e[91m'
+cf_yellow=$'\e[33m'
+cf_lyellow=$'\e[93m'
+cf_magenta=$'\e[35m'
+cf_lmagenta=$'\e[95m'
+cf_cyan=$'\e[36m'
+cf_lcyan=$'\e[96m'
 
 ## Help and usage
 while [ "$1" != "" ]; do
@@ -64,37 +83,11 @@ if [ "$mode" = "" ]; then
 	exit 1
 fi
 
-# Only root can run this
-id | grep "uid=0(" >/dev/null
-if [ "$?" != "0" ]; then
-	uname -a | grep -i CYGWIN >/dev/null
-	if [ "$?" != "0" ]; then
-		echo "Fatal Error: This script must be run as root!"
-		exit 1
-	fi
-fi
-
 ## Variables
 webmin_latest_rpm="http://prdownloads.sourceforge.net/webadmin/webmin-1.710-1.noarch.rpm"
 webmin_latest_deb="http://prdownloads.sourceforge.net/webadmin/webmin_1.710_all.deb"
 
 supported_os=("CentOS Linux 7", "Ubuntu 14.04")
-
-# Color and formatting
-cf_resetall=$'\e[0m\e[39m'
-cf_resetf=$'\e[0'
-cf_resetc=$'\e[39m'
-cf_bold=$'\e[1m'
-cf_green=$'\e[32m'
-cf_lgreen=$'\e[92m'
-cf_blue=$'\e[34m'
-cf_lblue=$'\e[96m'
-cf_red=$'\e[31m'
-cf_lred=$'\e[91m'
-cf_yellow=$'\e[33m'
-cf_lyellow=$'\e[93m'
-cf_magenta=$'\e[35m'
-cf_lmagenta=$'\e[95m'
 
 # String replacements
 misc_schema="sed \"s/  DESC 'Internet local mail recipient' SUP top AXUILIARY MAY ( mailLocalAddres/    DESC 'Internet local mail recipient' SUP top STRUCTURAL MAY ( mailLocalAddres/g\""
@@ -122,10 +115,10 @@ askyn() {
 	printf "$1"
 	yn
 	if yesno; then
-		echo -e "$cf_resetall"
+		printf "$cf_resetall"
 		return 0
 	else
-		echo -e "$cf_resetall"
+		printf "$cf_resetall"
 		return 1
 	fi
 }
@@ -139,7 +132,7 @@ yesno() {
 			n|N|No|NO|no|nO) return 1
 			;;
 			*)
-			printf "\nPlease enter y or n: "
+			printf "$cf_cyan%s" "Please enter y or n: $cf_lmagenta"
 			;;
 		esac
 	done
@@ -149,7 +142,7 @@ yesno() {
 # runner cmd/$1 description/$2
 runner () {
 	cmd=$1
-	echo " $2 in progress..."
+	echo "$2 in progress...$cf_yellow"
 	touch busy
 	$tempdir/spinner busy &
 	if $cmd &> /dev/null; then
@@ -168,24 +161,25 @@ runner () {
 # Displays succeeded message
 # success what_was_successful
 success() {
-	echo "$cf_green$1 succeeded!$cf_resetall"
+	printf "$1$cf_green succeeded!$cf_resetall\n"
 }
 
 # Displays error message
 # error what_went_wrong
 error() {
-	echo "$cf_lred$1 failed!$cf_resetall"
+	printf "$1$cf_lred failed!$cf_resetall\n"
 }
 
 # download()
 # Downloads using system tool (wget, curl, etc)
 download() {
+	str="Download of"
 	if $download $1
 	then
-		success "Download of $1"
+		success "$cf_lcyan$str $cf_lyellow$1$cf_resetall"
   	return $?
 	else
-		error "Download of $1"
+		error "$cf_lcyan$str $cf_lyellow$1$cf_resetall"
 	fi
 }
 
@@ -204,7 +198,8 @@ in_array() {
 }
 
 update() {
-	if ! runner "$update update" "Updating system"; then
+	str="System update"
+	if ! runner "$update" "$cf_lcyan$str"; then
 		error "Updating system"
 		return 1
 	fi
@@ -226,10 +221,11 @@ cleanup() {
 term() {
 	cleanup
 	if [[ "$1" != "0" ]]; then
-		echo
-		echo "Terminating..."
+		printf "\n\n$cf_red%s" "[Terminating...]"
+		echo "$cf_resetall"
 		exit $1
 	elif [ "$1" == 0 ] || [ "$1" = "" ]; then
+		printf "$cf_resetall"
 		exit 0
 	fi
 }
@@ -240,18 +236,29 @@ ctrl_c() {
 
 # Outputs [y/n] in a colored format
 yn() {
-	printf " %s[%sy%s/%sn%s]%s: %s" "$cf_blue" "$cf_green" "$cf_blue" "$cf_red" "$cf_blue" "$cf_resetc" "$cf_lmagenta"
+	printf " $cf_resetall%s[%sy%s/%sn%s]%s: %s" "$cf_blue" "$cf_green" "$cf_blue" "$cf_red" "$cf_blue" "$cf_resetall" "$cf_lmagenta"
 }
 ## End Functions
+
+## Only root can run this
+printf "$cf_lcyan%s" "Checking if script was ran as root user..."
+id | grep "uid=0(" >/dev/null
+if [ "$?" = "0" ]; then
+	echo "$cf_green Yes!"
+else
+	error "$cf_lred\nFatal Error: This script must be run as root! Execution"
+	term 1
+fi
+## End root user detection
 
 
 ## OS Detection
 source /etc/os-release
 os_str="$NAME $VERSION_ID"
 if in_array "$os_str" "${supported_os[@]}"; then
-	echo "$os_str detected and supported!"
+	echo "$cf_green$os_str$cf_lcyan detected and supported!$cf_resetc"
 else
-	echo "$os_str detected but not supported!"
+	echo "$cf_lred$os_str$cf_lcyan detected but not supported!$cf_resetc"
 	term 1
 fi
 ## End OS Detection
@@ -273,7 +280,7 @@ fi
 cd $tempdir
 
 # Check for wget or curl or fetch
-printf "Checking for HTTP client..."
+printf "$cf_lblue%s" "Checking for HTTP client..."
 if [ -x "/usr/bin/curl" ]; then
 	download="/usr/bin/curl -s -O "
 elif [ -x "/usr/bin/wget" ]; then
@@ -281,11 +288,10 @@ elif [ -x "/usr/bin/wget" ]; then
 elif [ -x "/usr/bin/fetch" ]; then
 	download="/usr/bin/fetch"
 else
-	echo "No web download program available: Please install curl, wget, or fetch"
-	echo "and try again."
+	printf "$cf_lred%s" "No web download program available: Please install curl, wget, or fetch and try again."
 	term 1
 fi
-printf "found $download\n"
+printf "$cf_lgreen Found $download\n"
 
 # Download spinner
 download http://software.virtualmin.com/lib/spinner
@@ -316,36 +322,73 @@ esac
 ## Get user input
 
 #printf "Update system? (Recommended)" && yn
-if askyn "Update system? (Recommended)"; then
+str="Update system? (Recommended)"
+if askyn "$cf_cyan$str"; then
 	update
 else
-	echo "Not updating!"
+	printf "\r\r$cf_yellow%s$cf_resetc\n" "Not updating!"
 fi
 
+# Find out if user wants Virtualmin GPL/Pro or Webmin
+printf "$cf_cyan%s\n" "Would you like me to install Virtualmin or Webmin for you?"
+printf "\t$cf_blue%s) $cf_lblue%s\t\t%s\n" "Webmin" "(Recommended for server)"
+printf "\t$cf_blue%s) $cf_lblue%s\t\t%s\n" "Virtualmin GPL" "(Recommended for client)"
+printf "\t$cf_blue%s) $cf_lblue%s\t\t%s\n" "Virtualmin Pro" "(Recommended for client)"
 echo
-echo "Ready to install packages!"
-printf "%b" "You want to make this system a $cf_green$cf_bold$mode$cf_resetall correct?" && yn
-if ! yesno; then
+printf "$cf_cyan%s$cf_lmagenta" "Selection [1-3]:"
+while read line; do
+	case $line in
+		1)
+		
+		break;
+		;;
+		2)
+		
+		break;
+		;;
+		3)
+		
+		break;
+		;;
+		*)
+		printf "$cf_cyan%s" "Please enter a number [1,2,3]: $cf_lmagenta"
+		;;
+	esac
+done
+
+
+
+echo
+printf "$cf_lcyan%s$cf_resetc\n" "Ready to install packages!"
+str="You want to make this system a $cf_green$cf_bold$mode$cf_resetf$cf_cyan correct?"
+if ! askyn "$cf_cyan$str"; then
+	printf "$cf_red%s " "Please re-run this script using the proper argument!"
 	term 1
 fi
 
 ### CLIENT SETUP
-install_cmd="$install $pkgs_c"
-if ! runner $install_cmd; then
-	error "Installation"
-	echo
-	echo "Please try running the following command manually and correcting any errors produced:"
-	echo
-	echo "$install_cmd"
-	echo
-	term 1;
-fi
+if [ $mode = "client" ]; then
 
+	install_cmd="$install $pkgs_c"
+	if ! runner $install_cmd; then
+		error "Installation"
+		echo
+		echo "Please try running the following command manually and correcting any errors produced:"
+		echo
+		echo "$install_cmd"
+		echo
+		term 1;
+	fi
+	
+fi
 ### END CLIENT SETUP
 
 ### SERVER SETUP
+if [ $mode = "client" ]; then
 
 
+
+fi
 ### END SERVER SETUP
 
 #install_cmd="$install $pkgs"
