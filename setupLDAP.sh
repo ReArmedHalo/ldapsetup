@@ -138,13 +138,25 @@ yesno() {
 	done
 }
 
+spinner() {
+	i=1
+	sp="/-\|"
+	esc="^["
+	reset="${esc}[0m"
+	while [ -e $1 ]; do
+		echo -en "\b${sp:i++%${#sp}:1}"
+		sleep .2
+		done
+		echo -en "${reset}\b"
+}
+
 # Displays a spinner while a command is busy
 # runner cmd/$1 description/$2
 runner () {
 	cmd=$1
 	echo "$2 in progress...$cf_yellow"
 	touch busy
-	$tempdir/spinner busy &
+	spinner busy &
 	if $cmd &> /dev/null; then
 		rm busy
 		sleep 1
@@ -292,10 +304,6 @@ else
 	term 1
 fi
 printf "$cf_lgreen Found $download\n"
-
-# Download spinner
-download http://software.virtualmin.com/lib/spinner
-chmod +x spinner
 
 # Determines which OS and sets variables as needed
 case $os_str in
