@@ -81,14 +81,23 @@ webmin_latest_deb="http://prdownloads.sourceforge.net/webadmin/webmin_1.710_all.
 supported_os=("CentOS Linux 7", "Ubuntu 14.04")
 
 # Color and formatting
-cf_resetall="\e[0m\e[39m"
-cf_resetf="\e[0"
-cf_resetc="\e[39m"
-cf_bold="\e[1m"
-cf_green="\e[32m"
-cf_lgreen="\e[92m"
-cf_blue="\e[34m"
-cf_lblue="\e[96m"
+cf_resetall=$'\e[0m\e[39m'
+cf_resetf=$'\e[0'
+cf_resetc=$'\e[39m'
+cf_bold=$'\e[1m'
+cf_green=$'\e[32m'
+cf_lgreen=$'\e[92m'
+cf_blue=$'\e[34m'
+cf_lblue=$'\e[96m'
+cf_red=$'\e[31m'
+cf_lred=$'\e[91m'
+cf_yellow=$'\e[33m'
+cf_lyellow=$'\e[93m'
+cf_magenta=$'\e[35m'
+cf_lmagenta=$'\e[95m'
+
+# String replacements
+misc_schema="sed \"s/  DESC 'Internet local mail recipient' SUP top AXUILIARY MAY ( mailLocalAddres/    DESC 'Internet local mail recipient' SUP top STRUCTURAL MAY ( mailLocalAddres/g\""
 
 # Packages, Server
 # CentOS
@@ -106,6 +115,20 @@ ubpkgs_c=""
 
 
 ## Functions
+
+# Asks a yes or no and gets response
+# Used because coloring user selection requires reset
+askyn() {
+	printf "$1"
+	yn
+	if yesno; then
+		echo -e "$cf_resetall"
+		return 0
+	else
+		echo -e "$cf_resetall"
+		return 1
+	fi
+}
 
 # Handles a yes or no question
 yesno() {
@@ -145,13 +168,13 @@ runner () {
 # Displays succeeded message
 # success what_was_successful
 success() {
-	echo "$1 succeeded!"
+	echo "$cf_green$1 succeeded!$cf_resetall"
 }
 
 # Displays error message
 # error what_went_wrong
 error() {
-	echo "$1 failed!"
+	echo "$cf_lred$1 failed!$cf_resetall"
 }
 
 # download()
@@ -215,6 +238,10 @@ ctrl_c() {
         term 1
 }
 
+# Outputs [y/n] in a colored format
+yn() {
+	printf " %s[%sy%s/%sn%s]%s: %s" "$cf_blue" "$cf_green" "$cf_blue" "$cf_red" "$cf_blue" "$cf_resetc" "$cf_lmagenta"
+}
 ## End Functions
 
 
@@ -288,8 +315,8 @@ esac
 
 ## Get user input
 
-printf "Update system? (Recommended) [y/n]: "
-if yesno; then
+#printf "Update system? (Recommended)" && yn
+if askyn "Update system? (Recommended)"; then
 	update
 else
 	echo "Not updating!"
@@ -297,7 +324,7 @@ fi
 
 echo
 echo "Ready to install packages!"
-printf "%b" "You want to make this system a $cf_lgreen$cf_bold$mode$cf_resetall correct? [y/n]: "
+printf "%b" "You want to make this system a $cf_green$cf_bold$mode$cf_resetall correct?" && yn
 if ! yesno; then
 	term 1
 fi
@@ -332,5 +359,5 @@ fi
 
 #download "http://software.virtualmin.com/lib/RPM-GPG-KEY-webmin" "Webmin package signing keys..."
 
-cleanup
+term
 exit 0
